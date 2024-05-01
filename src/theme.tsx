@@ -1,12 +1,20 @@
 import { createContext, useState, useMemo } from "react";
 import { createTheme } from "@mui/material/styles";
-
+import { Theme } from "@mui/material/styles";
+export interface ColorMode {
+  toggleColorMode: () => void;
+}
 type Mode = "dark" | "light";
 
-// color design tokens export
+/**
+ * Генерира обект с токени според посочения режим.
+ * @param mode - Режимът, за който се генерират токените. Може да бъде "dark" или "light".
+ * @returns Обект, съдържащ цветови токени за различни елементи на потребителския интерфейс, базирани на посочения режим.
+ */
 export const tokens = (mode: Mode) => ({
   ...(mode === "dark"
     ? {
+        // Токени за цветовете в тъмния режим
         grey: {
           100: "#e0e0e0",
           200: "#c2c2c2",
@@ -64,6 +72,7 @@ export const tokens = (mode: Mode) => ({
         }
       }
     : {
+        // Токени за цветовете в светлия режим
         grey: {
           100: "#141414",
           200: "#292929",
@@ -79,7 +88,7 @@ export const tokens = (mode: Mode) => ({
           100: "#040509",
           200: "#080b12",
           300: "#0c101b",
-          400: "#f2f0f0", // manually changed
+          400: "#f2f0f0",
           500: "#141b2d",
           600: "#1F2A40",
           700: "#727681",
@@ -122,7 +131,11 @@ export const tokens = (mode: Mode) => ({
       })
 });
 
-// mui theme settings
+/**
+ * Генерира настройки за темата според посочения режим.
+ * @param mode - Режимът, за който се генерират настройките. Може да бъде "dark" или "light".
+ * @returns Обект с настройки за цветова палитра и типография, базирани на посочения режим.
+ */
 export const themeSettings = (mode: Mode) => {
   const colors = tokens(mode);
   return {
@@ -130,7 +143,7 @@ export const themeSettings = (mode: Mode) => {
       mode: mode,
       ...(mode === "dark"
         ? {
-            // palette values for dark mode
+            // Стойности на палитрата за тъмен режим
             primary: {
               main: colors.primary[500]
             },
@@ -147,7 +160,7 @@ export const themeSettings = (mode: Mode) => {
             }
           }
         : {
-            // palette values for light mode
+            // Стойности на палитрата за светъл режим
             primary: {
               main: colors.primary[100]
             },
@@ -195,22 +208,25 @@ export const themeSettings = (mode: Mode) => {
   };
 };
 
-// context for color mode
-export const ColorModeContext = createContext({
-  toggleColorMode: () => {}
-});
+/**
+ * Създава контекст за режим на цветовата палитра.
+ */
+export const ColorModeContext = createContext<ColorMode | undefined>(undefined);
 
-export const useMode = () => {
+/**
+ * Хук за управление на режима на цветовата палитра.
+ * @returns Масив, съдържащ темата и методи за превключване на режима на цветовата палитра.
+ */
+export const useMode = (): [Theme, ColorMode] => {
   const [mode, setMode] = useState("dark");
 
-  const colorMode = useMemo(
-    () => ({
-      toggleColorMode: () =>
-        setMode((prev) => (prev === "light" ? "dark" : "light"))
-    }),
-    []
-  );
+  const toggleColorMode = () => {
+    setMode((prev) => (prev === "light" ? "dark" : "light"));
+  };
+
+  const colorMode = useMemo(() => ({ toggleColorMode }), [toggleColorMode]);
 
   const theme = useMemo(() => createTheme(themeSettings(mode as Mode)), [mode]);
+
   return [theme, colorMode];
 };
